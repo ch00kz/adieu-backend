@@ -35,12 +35,26 @@ pub struct JoinGameResponse {
     pub length: usize,
 }
 
+// Create Guess
 #[derive(Serialize, Deserialize)]
 pub struct PlayerGuessParams {
     pub guess: String,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct PlayerGuessResponse {
+pub struct PlayerGuess {
     pub letters: Vec<Letter>,
+    pub is_winning_guess: bool,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct PlayerGuessResponse {
+    pub guess: PlayerGuess,
+}
+
+// Get Guesses
+
+#[derive(Serialize, Deserialize)]
+pub struct PlayerGuessesResponse {
+    pub guesses: Vec<PlayerGuess>,
 }

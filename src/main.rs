@@ -24,6 +24,7 @@ async fn main() {
         .route("/game/create", post(create_game_handler))
         .route("/game/:game_id/join", post(join_game_handler))
         .route("/player/:player_id/guess", post(player_guess_handler))
+        .route("/player/:player_id/guesses", get(player_guesses_handler))
         // Allow CORS
         .layer(
             CorsLayer::new()

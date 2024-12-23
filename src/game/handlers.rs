@@ -10,7 +10,7 @@ use super::{
     check_guess,
     types::{
         CreateGameParams, CreateGameResponse, GameKind, JoinGameParams, JoinGameResponse,
-        PlayerGuessParams, PlayerGuessResponse,
+        PlayerGuess, PlayerGuessParams, PlayerGuessResponse, PlayerGuessesResponse,
     },
 };
 
@@ -58,11 +58,48 @@ pub async fn player_guess_handler(
         .await
         .expect("Expected to join a game (create a new player)");
 
-    super::db::create_guess(&pg_pool, player_id, params.guess.clone())
-        .await
-        .expect("Expected to save the guess");
-
     // process guess
-    let letters = check_guess(&params.guess, &solution);
-    return (StatusCode::CREATED, Json(PlayerGuessResponse { letters }));
+    let player_guess = check_guess(&params.guess, &solution);
+
+    super::db::create_guess(
+        &pg_pool,
+        player_id,
+        params.guess.clone(),
+        player_guess.is_winning_guess,
+    )
+    .await
+    .expect("Expected to save the guess");
+
+    return (
+        StatusCode::CREATED,
+        Json(PlayerGuessResponse {
+            guess: player_guess,
+        }),
+    );
+}
+
+pub async fn player_guesses_handler(
+    State(pg_pool): State<PgPool>,
+    Path(player_id): Path<Uuid>,
+) -> (StatusCode, Json<PlayerGuessesResponse>) {
+    let solution = super::db::get_solution(&pg_pool, player_id)
+        .await
+        .expect("Expected to join a game (create a new player)");
+
+    let guesses_records = super::db::get_guesses(&pg_pool, player_id)
+        .await
+        .expect("Expected to join a game (create a new player)");
+
+    // process guesses
+    let player_guesses: Vec<PlayerGuess> = guesses_records
+        .iter()
+        .map(|record| check_guess(&record.guess, &solution))
+        .collect();
+
+    return (
+        StatusCode::OK,
+        Json(PlayerGuessesResponse {
+            guesses: player_guesses,
+        }),
+    );
 }

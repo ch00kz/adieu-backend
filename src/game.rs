@@ -1,6 +1,7 @@
 use std::{collections::HashMap, iter::zip};
 
 use serde::{Deserialize, Serialize};
+use types::PlayerGuess;
 
 pub mod db;
 pub mod handlers;
@@ -19,7 +20,7 @@ pub struct Letter {
     pub letter: char,
 }
 
-fn check_guess(guess: &str, solution: &str) -> Vec<Letter> {
+fn check_guess(guess: &str, solution: &str) -> PlayerGuess {
     let mut looking_for = HashMap::<char, u32>::new();
     let mut letters = Vec::<Letter>::new();
     // First Pass: Mark correct guesses and wrong guesses. Also make note of what we're looking for.
@@ -51,5 +52,9 @@ fn check_guess(guess: &str, solution: &str) -> Vec<Letter> {
         }
     }
 
-    letters
+    let is_winning_guess = letters.iter().all(|f| f.status == Status::Correct);
+    PlayerGuess {
+        letters,
+        is_winning_guess,
+    }
 }

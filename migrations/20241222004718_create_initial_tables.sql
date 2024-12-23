@@ -19,6 +19,7 @@ create table "guesses" (
     "id" uuid primary key default gen_random_uuid (),
     "player_id" uuid not null references players (id) on delete cascade,
     "guess" text not null,
+    "is_winning_guess" boolean not null,
     "created_at" timestamptz not null default now ()
 );
 

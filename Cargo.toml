@@ -9,6 +9,13 @@ serde = { version = "1.0.216", features = ["derive"] }
 serde_json = "1.0.134"
 tokio = { version = "1.42.0", features = ["full"] }
 axum = { version = "0.7.9", features = ["macros"] }
-sqlx = { version = "0.8.2", features = ["postgres", "runtime-tokio", "uuid"] }
+sqlx = { version = "0.8.2", features = [
+    "postgres",
+    "runtime-tokio",
+    "uuid",
+    "time",
+    "chrono",
+] }
 tower-http = { version = "0.6.2", features = ["cors"] }
 anyhow = "1.0.95"
+chrono = "0.4.39"
