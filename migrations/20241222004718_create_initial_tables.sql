@@ -1,6 +1,25 @@
-CREATE TABLE "games" (
-    "id" UUID PRIMARY KEY DEFAULT gen_random_uuid (),
-    "word" TEXT NOT NULL,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT now (),
-    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT now ()
+create table "games" (
+    "id" uuid primary key default gen_random_uuid (),
+    "word" text not null,
+    "created_at" timestamptz not null default now ()
 );
+
+create table "players" (
+    "id" uuid primary key default gen_random_uuid (),
+    "username" text not null,
+    "game_id" uuid not null references games (id) on delete cascade,
+    "created_at" timestamptz not null default now ()
+);
+
+create unique index on players (game_id, username);
+
+create index on players (game_id);
+
+create table "guesses" (
+    "id" uuid primary key default gen_random_uuid (),
+    "player_id" uuid not null references players (id) on delete cascade,
+    "guess" text not null,
+    "created_at" timestamptz not null default now ()
+);
+
+create index on guesses (player_id);

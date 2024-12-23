@@ -1,12 +1,11 @@
 mod game;
 use axum::{
-    extract::State,
-    http::{self, HeaderValue, Method, StatusCode},
+    http::{self, HeaderValue, Method},
     response::Html,
     routing::{get, post},
-    Json, Router,
+    Router,
 };
-use game::types::{CreateGameParams, CreateGameResponse};
+use game::handlers::*;
 use sqlx::postgres::PgPool;
 use std::env;
 use tower_http::cors::CorsLayer;
@@ -22,7 +21,9 @@ async fn main() {
     let app: Router<()> = Router::new()
         // Routes
         .route("/", get(|| async { Html("We did it.") }))
-        .route("/create-game", post(create_game))
+        .route("/game/create", post(create_game_handler))
+        .route("/game/:game_id/join", post(join_game_handler))
+        .route("/player/:player_id/guess", post(player_guess_handler))
         // Allow CORS
         .layer(
             CorsLayer::new()
@@ -36,15 +37,4 @@ async fn main() {
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
-}
-
-// handlers
-async fn create_game(
-    State(pg_pool): State<PgPool>,
-    Json(params): Json<CreateGameParams>,
-) -> (StatusCode, Json<CreateGameResponse>) {
-    let game = game::db::create_game(&pg_pool, params)
-        .await
-        .expect("Expected to create a Game");
-    return (StatusCode::CREATED, Json(CreateGameResponse { game }));
 }
