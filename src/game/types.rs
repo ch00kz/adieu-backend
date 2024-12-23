@@ -41,6 +41,8 @@ pub struct PlayerGuessParams {
     pub guess: String,
 }
 
+// Get Player Guesses
+
 #[derive(Serialize, Deserialize)]
 pub struct PlayerGuess {
     pub letters: Vec<Letter>,
@@ -52,9 +54,22 @@ pub struct PlayerGuessResponse {
     pub guess: PlayerGuess,
 }
 
-// Get Guesses
-
 #[derive(Serialize, Deserialize)]
 pub struct PlayerGuessesResponse {
     pub guesses: Vec<PlayerGuess>,
+}
+
+// Get Game Guesses
+
+#[derive(Serialize, Deserialize)]
+pub struct GameGuess {
+    pub player: Uuid,
+    pub username: String,
+    pub guesses: i64,
+    pub has_won: bool,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct GameGuessesResponse {
+    pub guesses: Vec<GameGuess>,
 }
