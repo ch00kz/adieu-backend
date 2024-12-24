@@ -13,7 +13,17 @@ use tower_http::cors::CorsLayer;
 #[tokio::main]
 async fn main() {
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL not set");
-    let frontend_url = env::var("FRONTEND_URL").unwrap_or("http://localhost:5173".to_owned());
+    let frontend_url = match env::var("FRONTEND_URL") {
+        Err(_) => "http://localhost:5173",
+        Ok(url) => {
+            if url.is_empty() {
+                "http://localhost:5173"
+            } else {
+                &url.clone()
+            }
+        }
+    };
+
     let pg_pool = PgPool::connect(&db_url)
         .await
         .expect("Could not connect to Database.");

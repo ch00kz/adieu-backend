@@ -3,9 +3,7 @@ use uuid::{self, Uuid};
 
 #[derive(FromRow)]
 pub struct GuessRecord {
-    pub id: Uuid,
     pub guess: String,
-    pub is_winning_guess: bool,
 }
 
 #[derive(FromRow)]
@@ -63,7 +61,7 @@ pub async fn get_guesses(
 ) -> anyhow::Result<Vec<GuessRecord>, anyhow::Error> {
     Ok(query_as!(
         GuessRecord,
-        r#"SELECT id, guess, is_winning_guess FROM guesses WHERE player_id = $1 ORDER BY created_at ASC"#,
+        r#"SELECT guess FROM guesses WHERE player_id = $1 ORDER BY created_at ASC"#,
         player_id,
     )
     .fetch_all(pool)
