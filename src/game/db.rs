@@ -61,7 +61,7 @@ pub async fn get_guesses(
 ) -> anyhow::Result<Vec<GuessRecord>, anyhow::Error> {
     Ok(query_as!(
         GuessRecord,
-        r#"SELECT guess FROM guesses WHERE player_id = $1 ORDER BY created_at DESC"#,
+        r#"SELECT guess FROM guesses WHERE player_id = $1 ORDER BY created_at ASC"#,
         player_id,
     )
     .fetch_all(pool)
