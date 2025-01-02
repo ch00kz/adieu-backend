@@ -11,11 +11,10 @@ use uuid::Uuid;
 
 use super::{
     check_guess,
-    db::PlayerGuessRecord,
     types::{
-        CreateGameParams, CreateGameResponse, GameGuess, GameGuessesResponse, GameKind,
-        JoinGameParams, JoinGameResponse, PlayerGuess, PlayerGuessParams, PlayerGuessResponse,
-        PlayerGuessesResponse,
+        CreateGameParams, CreateGameResponse, CreatePlayerGuessParams, CreatePlayerGuessResponse,
+        Game, GetGameScoresResponse, GetPlayerGuessesResponse, JoinGameParams, JoinGameResponse,
+        PlayerGuess, PlayerScore,
     },
 };
 
@@ -53,13 +52,13 @@ pub async fn create_game_handler(
     State(pg_pool): State<PgPool>,
     Json(params): Json<CreateGameParams>,
 ) -> JsonResponse<CreateGameResponse> {
-    let word = match params.kind {
-        GameKind::Custom => params.word.unwrap().to_uppercase(),
-        GameKind::Random => String::from("ADIEU"),
+    let word = match params.game {
+        Game::Custom(word) => word.to_uppercase(),
+        Game::Random => String::from("ADIEU"),
     };
 
     match super::db::create_game(&pg_pool, word).await {
-        Ok(game) => json_ok(StatusCode::CREATED, CreateGameResponse { game }),
+        Ok(game_id) => json_ok(StatusCode::CREATED, CreateGameResponse { game_id }),
         Err(_) => json_err(StatusCode::BAD_REQUEST, "Error creating game"),
     }
 }
@@ -77,18 +76,18 @@ pub async fn join_game_handler(
                 StatusCode::CREATED,
                 JoinGameResponse {
                     player,
-                    length: solution.len(),
+                    length: solution.len() as u32,
                 },
             ),
         },
     }
 }
 
-pub async fn player_guess_handler(
+pub async fn create_player_guess_handler(
     State(pg_pool): State<PgPool>,
     Path(player_id): Path<Uuid>,
-    Json(params): Json<PlayerGuessParams>,
-) -> JsonResponse<PlayerGuessResponse> {
+    Json(params): Json<CreatePlayerGuessParams>,
+) -> JsonResponse<CreatePlayerGuessResponse> {
     match super::db::get_solution(&pg_pool, player_id).await {
         Err(_) => json_err(StatusCode::BAD_REQUEST, "Error fetching game solution"),
         Ok(solution) => {
@@ -104,7 +103,7 @@ pub async fn player_guess_handler(
                 Err(_) => json_err(StatusCode::BAD_REQUEST, "Error creating guess"),
                 Ok(_) => json_ok(
                     StatusCode::CREATED,
-                    PlayerGuessResponse {
+                    CreatePlayerGuessResponse {
                         guess: player_guess,
                     },
                 ),
@@ -113,10 +112,10 @@ pub async fn player_guess_handler(
     }
 }
 
-pub async fn player_guesses_handler(
+pub async fn get_player_guesses_handler(
     State(pg_pool): State<PgPool>,
     Path(player_id): Path<Uuid>,
-) -> JsonResponse<PlayerGuessesResponse> {
+) -> JsonResponse<GetPlayerGuessesResponse> {
     match super::db::get_solution(&pg_pool, player_id).await {
         Err(_) => json_err(StatusCode::BAD_REQUEST, "Error fetching solution"),
         Ok(solution) => match super::db::get_guesses(&pg_pool, player_id).await {
@@ -128,7 +127,7 @@ pub async fn player_guesses_handler(
                     .collect();
                 json_ok(
                     StatusCode::OK,
-                    PlayerGuessesResponse {
+                    GetPlayerGuessesResponse {
                         guesses: player_guesses,
                     },
                 )
@@ -137,26 +136,15 @@ pub async fn player_guesses_handler(
     }
 }
 
-pub async fn game_guesses_handler(
+pub async fn get_game_scores_handler(
     State(pg_pool): State<PgPool>,
     Path(game_id): Path<Uuid>,
-) -> JsonResponse<GameGuessesResponse> {
-    match super::db::get_all_guesses(&pg_pool, game_id).await {
+) -> JsonResponse<GetGameScoresResponse> {
+    match super::db::get_player_scores(&pg_pool, game_id).await {
         Err(_) => json_err(StatusCode::BAD_REQUEST, "Error fetching guesses"),
         Ok(records) => {
-            let guesses: Vec<GameGuess> = records.into_iter().map(|r| r.into()).collect();
-            json_ok(StatusCode::OK, GameGuessesResponse { guesses })
-        }
-    }
-}
-
-impl From<PlayerGuessRecord> for GameGuess {
-    fn from(value: PlayerGuessRecord) -> Self {
-        GameGuess {
-            player: value.player_id,
-            username: value.username.clone(),
-            guesses: value.guesses.unwrap_or_default(),
-            has_won: value.has_won.unwrap_or_default(),
+            let player_scores: Vec<PlayerScore> = records.into_iter().map(|r| r.into()).collect();
+            json_ok(StatusCode::OK, GetGameScoresResponse { player_scores })
         }
     }
 }

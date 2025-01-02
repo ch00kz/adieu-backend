@@ -2,22 +2,20 @@ use std::{collections::HashMap, iter::zip};
 
 use serde::{Deserialize, Serialize};
 use types::PlayerGuess;
+use typeshare::typeshare;
 
 pub mod db;
 pub mod handlers;
 pub mod types;
 
-#[derive(Serialize, Deserialize, PartialEq)]
-pub enum Status {
-    Correct,
-    InTheWord,
-    Wrong,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Letter {
-    pub status: Status,
-    pub letter: char,
+#[typeshare]
+#[derive(Serialize, Deserialize, PartialEq, Clone, Copy)]
+#[serde(tag = "status", content = "letter")]
+pub enum Letter {
+    Correct(char),
+    InTheWord(char),
+    Wrong(char),
+    Unsubmitted(char),
 }
 
 fn check_guess(guess: &str, solution: &str) -> PlayerGuess {
@@ -29,30 +27,31 @@ fn check_guess(guess: &str, solution: &str) -> PlayerGuess {
         solution.to_lowercase().chars(),
     ) {
         if guess_char == solution_char {
-            letters.push(Letter {
-                status: Status::Correct,
-                letter: guess_char,
-            })
+            letters.push(Letter::Correct(guess_char))
         } else {
             *looking_for.entry(solution_char).or_insert(0) += 1;
-            letters.push(Letter {
-                status: Status::Wrong,
-                letter: guess_char,
-            })
+            letters.push(Letter::Wrong(guess_char))
         }
     }
 
     // Second Pass: Check if we're looking for any of the wrong guesses, and mark as InTheWord
-    for letter in letters.iter_mut().filter(|l| l.status == Status::Wrong) {
-        if let Some(amount_looking_for) = looking_for.get_mut(&letter.letter) {
-            if *amount_looking_for > 0 {
-                letter.status = Status::InTheWord;
-                *amount_looking_for -= 1;
+    letters = letters
+        .into_iter()
+        .map(|l| match l {
+            Letter::Wrong(c) => {
+                if let Some(amount_looking_for) = looking_for.get_mut(&c) {
+                    if *amount_looking_for > 0 {
+                        *amount_looking_for -= 1;
+                        return Letter::InTheWord(c);
+                    }
+                }
+                return l;
             }
-        }
-    }
+            _otherwise => return l,
+        })
+        .collect();
 
-    let is_winning_guess = letters.iter().all(|f| f.status == Status::Correct);
+    let is_winning_guess = letters.iter().all(|l| matches!(l, Letter::Correct(_)));
     PlayerGuess {
         letters,
         is_winning_guess,

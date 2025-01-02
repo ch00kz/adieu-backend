@@ -32,11 +32,13 @@ async fn main() {
     let app: Router<()> = Router::new()
         // Routes
         .route("/", get(|| async { Html("We did it.") }))
-        .route("/game/create", post(create_game_handler))
+        .route("/game", post(create_game_handler))
         .route("/game/:game_id/join", post(join_game_handler))
-        .route("/game/:game_id/guesses", get(game_guesses_handler))
-        .route("/player/:player_id/guess", post(player_guess_handler))
-        .route("/player/:player_id/guesses", get(player_guesses_handler))
+        .route("/game/:game_id/scores", get(get_game_scores_handler))
+        .route(
+            "/player/:player_id/guess",
+            post(create_player_guess_handler).get(get_player_guesses_handler),
+        )
         // Allow CORS
         .layer(
             CorsLayer::new()

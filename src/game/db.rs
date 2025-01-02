@@ -7,7 +7,7 @@ pub struct GuessRecord {
 }
 
 #[derive(FromRow)]
-pub struct PlayerGuessRecord {
+pub struct PlayerScoreRecord {
     pub player_id: Uuid,
     pub username: String,
     pub guesses: Option<i64>,
@@ -79,12 +79,12 @@ pub async fn get_solution(pool: &PgPool, player_id: Uuid) -> anyhow::Result<Stri
     Ok(rec.word)
 }
 
-pub async fn get_all_guesses(
+pub async fn get_player_scores(
     pool: &PgPool,
     game_id: Uuid,
-) -> anyhow::Result<Vec<PlayerGuessRecord>, anyhow::Error> {
+) -> anyhow::Result<Vec<PlayerScoreRecord>, anyhow::Error> {
     Ok(query_as!(
-        PlayerGuessRecord,
+        PlayerScoreRecord,
         r#"SELECT
             p.id as player_id,
             p.username,
