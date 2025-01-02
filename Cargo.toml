@@ -20,3 +20,4 @@ tower-http = { version = "0.6.2", features = ["cors"] }
 anyhow = "1.0.95"
 chrono = "0.4.39"
 typeshare = "1.0.4"
+rand = "0.8.5"

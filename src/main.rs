@@ -5,10 +5,15 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use game::handlers::*;
+use game::{dictionary::Dictionary, handlers::*};
 use sqlx::postgres::PgPool;
-use std::env;
+use std::{env, sync::Arc};
 use tower_http::cors::CorsLayer;
+
+struct AppState {
+    pg_pool: PgPool,
+    dictionary: Dictionary,
+}
 
 #[tokio::main]
 async fn main() {
@@ -24,9 +29,14 @@ async fn main() {
         }
     };
 
+    let dictionary = Dictionary::new();
     let pg_pool = PgPool::connect(&db_url)
         .await
         .expect("Could not connect to Database.");
+    let app_state = AppState {
+        pg_pool,
+        dictionary,
+    };
 
     // build our application with a route
     let app: Router<()> = Router::new()
@@ -47,7 +57,7 @@ async fn main() {
                 .allow_methods([Method::GET, Method::POST]),
         )
         // Add state
-        .with_state(pg_pool);
+        .with_state(Arc::new(app_state));
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();

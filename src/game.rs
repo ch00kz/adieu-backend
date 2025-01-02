@@ -5,6 +5,7 @@ use types::PlayerGuess;
 use typeshare::typeshare;
 
 pub mod db;
+pub mod dictionary;
 pub mod handlers;
 pub mod types;
 
@@ -45,9 +46,9 @@ fn check_guess(guess: &str, solution: &str) -> PlayerGuess {
                         return Letter::InTheWord(c);
                     }
                 }
-                return l;
+                l
             }
-            _otherwise => return l,
+            _otherwise => l,
         })
         .collect();
 
