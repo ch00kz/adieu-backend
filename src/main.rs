@@ -43,10 +43,10 @@ async fn main() {
         // Routes
         .route("/", get(|| async { Html("We did it.") }))
         .route("/game", post(create_game_handler))
-        .route("/game/:game_id/join", post(join_game_handler))
-        .route("/game/:game_id/scores", get(get_game_scores_handler))
+        .route("/game/{game_id}/join", post(join_game_handler))
+        .route("/game/{game_id}/scores", get(get_game_scores_handler))
         .route(
-            "/player/:player_id/guess",
+            "/player/{player_id}/guess",
             post(create_player_guess_handler).get(get_player_guesses_handler),
         )
         // Allow CORS
