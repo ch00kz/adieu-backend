@@ -1,6 +1,6 @@
 mod game;
 use axum::{
-    http::{self, HeaderValue, Method},
+    http::{self, Method},
     response::Html,
     routing::{get, post},
     Router,
@@ -8,7 +8,7 @@ use axum::{
 use game::{dictionary::Dictionary, handlers::*};
 use sqlx::postgres::PgPool;
 use std::{env, sync::Arc};
-use tower_http::cors::CorsLayer;
+use tower_http::cors::{Any, CorsLayer};
 
 struct AppState {
     pg_pool: PgPool,
@@ -18,17 +18,6 @@ struct AppState {
 #[tokio::main]
 async fn main() {
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL not set");
-    let frontend_url = match env::var("FRONTEND_URL") {
-        Err(_) => "http://localhost:5173",
-        Ok(url) => {
-            if url.is_empty() {
-                "http://localhost:5173"
-            } else {
-                &url.clone()
-            }
-        }
-    };
-
     let dictionary = Dictionary::new();
     let pg_pool = PgPool::connect(&db_url)
         .await
@@ -52,7 +41,7 @@ async fn main() {
         // Allow CORS
         .layer(
             CorsLayer::new()
-                .allow_origin(frontend_url.parse::<HeaderValue>().unwrap())
+                .allow_origin(Any)
                 .allow_headers([http::header::CONTENT_TYPE])
                 .allow_methods([Method::GET, Method::POST]),
         )
