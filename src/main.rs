@@ -42,8 +42,8 @@ async fn main() {
         .layer(
             CorsLayer::new()
                 .allow_origin(Any)
-                .allow_headers([http::header::CONTENT_TYPE])
-                .allow_methods([Method::GET, Method::POST]),
+                .allow_headers(Any)
+                .allow_methods(Any),
         )
         // Add state
         .with_state(Arc::new(app_state));
