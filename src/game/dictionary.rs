@@ -7,8 +7,8 @@ use std::{
 pub struct Dictionary(HashMap<usize, HashSet<String>>);
 
 impl Dictionary {
-    pub fn new() -> Self {
-        let contents = fs::read_to_string("src/words.json").unwrap();
+    pub fn new(file_path: &str) -> Self {
+        let contents = fs::read_to_string(file_path).unwrap();
         let words: Vec<String> = serde_json::from_str(&contents).unwrap();
         let mut hashmap: HashMap<usize, HashSet<String>> = HashMap::new();
         for word in words.into_iter() {
