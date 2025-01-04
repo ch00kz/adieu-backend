@@ -1,28 +1,34 @@
 {
-  description = "Flake for rust dev";
+  description = "Adieu Backend Flake";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
   };
 
-  outputs = { self , nixpkgs ,... }: let
+  outputs = { self, nixpkgs, unstable, ... }: let
     system = "aarch64-darwin";
-    # system = builtins.currentSystem;
+    pkgs = import nixpkgs {
+      inherit system;
+    };
+    unstablePkgs = import unstable {
+      inherit system;
+    };
   in {
     devShells."${system}".default = let
       pkgs = import nixpkgs {
         inherit system;
       };
     in pkgs.mkShell {
-      packages = with pkgs; [
-        rustup          # Rust toolchain installer - includes: cargo, rustc, rustfmt, rust-analyzer, etc
-        sqlx-cli        # SQLx CLI - manage database creation, migrations, etc
-        typeshare       # Command Line Tool for generating language files with typeshare
-        postgresql_17   # PostgreSQL 17 - includes psql, createdb, createuser, dropdb, dropuser, etc
+      packages = [
+        pkgs.just                   # Just command runner
+        pkgs.rustup                 # Rust toolchain installer - includes: cargo, rustc, rustfmt, rust-analyzer, etc
+        pkgs.sqlx-cli               # SQLx CLI - manage database creation, migrations, etc
+        pkgs.postgresql_17          # PostgreSQL 17 - includes psql, createdb, createuser, dropdb, dropuser, etc
+        unstablePkgs.typeshare      # Command Line Tool for generating language files with typeshare
       ];
 
       shellHook = ''
-        echo "Welcome to your developer environment!";
         echo "Exporting .env";
         set -a;
         source .env;
