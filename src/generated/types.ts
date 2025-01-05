@@ -38,6 +38,7 @@ export interface PlayerScore {
 	username: string;
 	guesses: number;
 	hasWon: boolean;
+	guessDuration: number;
 }
 
 export interface GetGameScoresResponse {

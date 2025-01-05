@@ -12,6 +12,7 @@ pub struct PlayerScoreRecord {
     pub username: String,
     pub guesses: Option<i64>,
     pub has_won: Option<bool>,
+    pub guess_duration: Option<i64>,
 }
 
 pub async fn create_game(pool: &PgPool, word: String) -> anyhow::Result<Uuid> {
@@ -89,12 +90,13 @@ pub async fn get_player_scores(
             p.id as player_id,
             p.username,
             COUNT(g.id) AS guesses,
-            BOOL_OR(g.is_winning_guess) AS has_won
+            COALESCE(BOOL_OR(g.is_winning_guess), false) AS has_won,
+            EXTRACT(EPOCH FROM (MAX(g.created_at) - MIN(g.created_at)))::bigint as guess_duration
         FROM players p
         LEFT JOIN guesses g ON p.id = g.player_id
         WHERE p.game_id = $1
         GROUP BY p.id, p.username
-        ORDER BY has_won DESC, guesses ASC
+        ORDER BY has_won DESC, guesses ASC, guess_duration ASC
         "#,
         game_id,
     )

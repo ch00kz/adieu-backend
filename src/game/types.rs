@@ -86,6 +86,7 @@ pub struct PlayerScore {
     pub username: String,
     pub guesses: i32,
     pub has_won: bool,
+    pub guess_duration: i32,
 }
 
 impl From<PlayerScoreRecord> for PlayerScore {
@@ -95,6 +96,7 @@ impl From<PlayerScoreRecord> for PlayerScore {
             username: value.username.clone(),
             guesses: value.guesses.unwrap_or_default() as i32,
             has_won: value.has_won.unwrap_or_default(),
+            guess_duration: value.guess_duration.unwrap_or_default() as i32,
         }
     }
 }
