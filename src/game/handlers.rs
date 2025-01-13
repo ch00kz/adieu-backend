@@ -56,11 +56,14 @@ pub async fn create_game_handler(
     Json(params): Json<CreateGameParams>,
 ) -> JsonResponse<CreateGameResponse> {
     let word = match params.game {
-        Game::Custom(word) => word,
-        Game::Random => state
-            .dictionary
-            .get_random_word(6)
-            .unwrap_or("ADIEU".to_string()),
+        Game::Custom(word) => {
+            if !state.dictionary.is_valid_word(&word) {
+                return json_err(StatusCode::BAD_REQUEST, "Word is not in dictionary");
+            }
+            word
+        }
+        // should be safe to call this with 4 - 6
+        Game::Random => state.dictionary.get_random_word(6).unwrap(),
     };
 
     match super::db::create_game(&state.pg_pool, word.to_uppercase()).await {
