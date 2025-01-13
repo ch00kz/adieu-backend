@@ -7,7 +7,7 @@
   };
 
   outputs = { self, nixpkgs, unstable, ... }: let
-    system = "aarch64-darwin";
+    system = "x86_64-linux";
     pkgs = import nixpkgs {
       inherit system;
     };
@@ -24,7 +24,6 @@
         pkgs.just                   # Just command runner
         pkgs.rustup                 # Rust toolchain installer - includes: cargo, rustc, rustfmt, rust-analyzer, etc
         pkgs.sqlx-cli               # SQLx CLI - manage database creation, migrations, etc
-        pkgs.postgresql_17          # PostgreSQL 17 - includes psql, createdb, createuser, dropdb, dropuser, etc
         unstablePkgs.typeshare      # Command Line Tool for generating language files with typeshare
       ];
 
